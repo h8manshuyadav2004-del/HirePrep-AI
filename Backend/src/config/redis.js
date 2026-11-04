@@ -11,7 +11,7 @@ const redisClient = createClient({
             if (retries > 5) {
                 // Return null to stop reconnecting after 5 attempts
                 // This allows the app to proceed without Redis in local development
-                return null;
+                return false;
             }
             return Math.min(retries * 500, 2000); // Gradual increase in wait time
         }
