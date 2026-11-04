@@ -1,0 +1,25 @@
+services:
+  backend:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      # This tells your Node app to look for Redis on the Docker network
+      - REDIS_URL=redis://redis:6379 
+      #- NODE_ENV=production
+    env_file:
+      # This pulls in your Google GenAI and RapidAPI keys
+      - .env 
+    depends_on:
+      - redis
+    #restart: unless-stopped # Automatically restarts if the server reboots!
+    shm_size: '1gb'
+    volumes:
+      # This maps your local folder to the container so nodemon auto-restarts when you save files!
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"

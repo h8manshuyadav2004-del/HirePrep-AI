@@ -1,0 +1,26 @@
+.button{
+    border: none;
+    outline: none;
+    padding-inline: 1.5rem;
+    padding-block: 0.75rem;
+    border-radius: 1rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &.primary-button{
+        background: var(--accent-gradient);
+        color: white;
+        box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.39);
+        
+        &:hover {
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+            transform: translateY(-1px);
+        }
+    }
+
+    &:active{
+        transform: scale(0.97);
+    }
+}

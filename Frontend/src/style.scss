@@ -1,0 +1,51 @@
+@use "./style/button.scss";
+
+:root {
+  --bg-dark: #09090b; /* Zinc 950 */
+  --bg-gradient: radial-gradient(circle at top right, #18181b, #09090b);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --accent-color: #10b981; /* Emerald 500 */
+  --accent-gradient: linear-gradient(135deg, #34d399, #059669); /* Light to Dark Emerald */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body, #root {
+    width: 100%;
+    min-height: 100vh;
+    background: var(--bg-dark);
+    background-image: var(--bg-gradient);
+    color: var(--text-primary);
+    font-family: 'Outfit', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Premium Utility Classes */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.text-gradient {
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Base highlight refactor */
+.highlight {
+    @extend .text-gradient;
+    font-weight: 700;
+}

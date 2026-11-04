@@ -1,0 +1,745 @@
+@use "sass:color";
+// ── Variables ────────────────────────────────────────────────────────────────
+$bg-page:        transparent; /* Rely on global root variables */
+$bg-card:        rgba(255, 255, 255, 0.03); /* Glass base */
+$bg-panel:       rgba(0, 0, 0, 0.2);
+$bg-input:       rgba(255, 255, 255, 0.05);
+$border-color:   rgba(255, 255, 255, 0.08); /* Glass border */
+$text-primary:   #fafafa;
+$text-muted:     #a1a1aa;
+$accent:         #10b981;
+$accent-alt:     #34d399;
+$badge-required: #10b981;
+$badge-best:     #34d399;
+$info-bg:        rgba(16, 185, 129, 0.1);
+$info-border:    rgba(16, 185, 129, 0.2);
+$font-stack:     'Outfit', system-ui, sans-serif;
+
+// ── Page Shell ───────────────────────────────────────────────────────────────
+.home-page {
+    width: 100%;
+    min-height: 100vh;
+    background-color: $bg-page;
+    color: $text-primary;
+    font-family: $font-stack;
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    gap: 2rem;
+}
+
+// ── Page Header ──────────────────────────────────────────────────────────────
+.page-header {
+    text-align: center;
+
+    h1 {
+        font-size: 2.25rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: $text-primary;
+    }
+
+    p {
+        color: $text-muted;
+        font-size: 0.95rem;
+        max-width: 480px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+}
+
+@keyframes slideInUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+// ── Main Card ─────────────────────────────────────────────────────────────────
+.interview-card {
+    width: 100%;
+    max-width: 900px;
+    background-color: $bg-card;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid $border-color;
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    opacity: 0;
+    animation: slideInUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+
+    &__body {
+        display: flex;
+        min-height: 520px;
+    }
+
+    &__footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid $border-color;
+
+        .footer-info {
+            font-size: 0.8rem;
+            color: $text-muted;
+        }
+    }
+}
+
+// ── Panels ────────────────────────────────────────────────────────────────────
+.panel-divider {
+    width: 1px;
+    background-color: $border-color;
+    flex-shrink: 0;
+}
+
+.panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.25rem;
+
+        h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: $text-primary;
+            flex: 1;
+        }
+    }
+
+    &__icon {
+        display: flex;
+        align-items: center;
+        color: $accent;
+    }
+
+    &__textarea {
+        flex: 1;
+        width: 100%;
+        background-color: $bg-input;
+        border: 1px solid $border-color;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        color: $text-primary;
+        font-family: $font-stack;
+        font-size: 0.875rem;
+        resize: none;
+        outline: none;
+        transition: border-color 0.2s;
+        line-height: 1.5;
+
+        &::placeholder {
+            color: $text-muted;
+        }
+
+        &:focus {
+            border-color: $accent;
+        }
+
+        &--short {
+            flex: unset;
+            height: 96px;
+        }
+    }
+
+    &--left {
+        position: relative;
+
+        .char-counter {
+            position: absolute;
+            bottom: 2.25rem;
+            right: 2rem;
+            font-size: 0.75rem;
+            color: $text-muted;
+        }
+    }
+
+    &--right {
+        gap: 0.75rem;
+    }
+}
+
+// ── Badges ────────────────────────────────────────────────────────────────────
+.badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+
+    &--required {
+        background-color: rgba($badge-required, 0.15);
+        color: $badge-required;
+        border: 1px solid rgba($badge-required, 0.3);
+    }
+
+    &--best {
+        background-color: rgba($badge-best, 0.15);
+        color: $badge-best;
+        border: 1px solid rgba($badge-best, 0.3);
+    }
+}
+
+// ── Section Label ─────────────────────────────────────────────────────────────
+.section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $text-primary;
+    margin-bottom: 0.25rem;
+}
+
+// ── Dropzone ──────────────────────────────────────────────────────────────────
+.upload-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 1.5rem 1rem;
+    background-color: $bg-input;
+    border: 2px dashed $border-color;
+    border-radius: 0.6rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+
+    &:hover {
+        border-color: $accent;
+        background-color: rgba($accent, 0.05);
+    }
+
+    &__icon {
+        color: $accent;
+        margin-bottom: 0.25rem;
+    }
+
+    &__title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: $text-primary;
+        margin: 0;
+    }
+
+    &__subtitle {
+        font-size: 0.75rem;
+        color: $text-muted;
+        margin: 0;
+    }
+}
+
+// ── OR Divider ────────────────────────────────────────────────────────────────
+.or-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: $text-muted;
+    font-size: 0.75rem;
+
+    &::before,
+    &::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background-color: $border-color;
+    }
+
+    span {
+        white-space: nowrap;
+    }
+}
+
+// ── Self Description ──────────────────────────────────────────────────────────
+.self-description {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+// ── Info Box ──────────────────────────────────────────────────────────────────
+.info-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    background-color: $info-bg;
+    border: 1px solid $info-border;
+    border-radius: 0.5rem;
+
+    &__icon {
+        flex-shrink: 0;
+        color: #4a90e2;
+        margin-top: 1px;
+    }
+
+    p {
+        margin: 0;
+        font-size: 0.8rem;
+        color: #8ab4f8;
+        line-height: 1.5;
+
+        strong {
+            color: $text-primary;
+        }
+    }
+}
+
+// ── Generate Button ───────────────────────────────────────────────────────────
+.generate-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, $accent 0%, color.adjust($accent, $lightness: -10%) 100%);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    font-family: $font-stack;
+
+    &:hover {
+        opacity: 0.9;
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+}
+
+.recent-reports {
+    margin-top: 3rem;
+    width: 100%;
+    opacity: 0;
+    animation: slideInUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s forwards;
+
+    h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        color: #fff;
+    }
+
+    .reports-list {
+        display: flex;
+        gap: 1.5rem;
+        
+        /* 🚨 THE MAGIC PROPERTIES FOR SCROLLING */
+        overflow-x: auto; 
+        flex-wrap: nowrap; 
+        
+        padding-bottom: 1rem; // Breathing room for the scrollbar
+        list-style: none;
+        margin: 0;
+        padding-left: 0;
+
+        /* Customizing the Scrollbar to match your theme */
+        &::-webkit-scrollbar {
+            height: 8px;
+        }
+        &::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        &::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 136, 0.3); // Theme green
+            border-radius: 10px;
+            
+            &:hover {
+                background: rgba(0, 255, 136, 0.6);
+            }
+        }
+    }
+
+    .report-item {
+        /* 🚨 Prevent cards from shrinking */
+        flex: 0 0 auto; 
+        width: 250px; // Gives every card a uniform, readable width
+        
+        position: relative;
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 12px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: transform 0.1s ease-out, border-color 0.2s ease, box-shadow 0.2s ease;
+        transform-style: preserve-3d;
+        overflow: hidden;
+
+        &:hover {
+            border-color: #00ff88;
+            box-shadow: 0 15px 30px rgba(0, 255, 136, 0.1), 0 0 15px rgba(0, 255, 136, 0.05);
+        }
+
+        &::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(
+                400px circle at var(--glare-x) var(--glare-y),
+                rgba(255, 255, 255, 0.08),
+                transparent 40%
+            );
+            opacity: var(--glare-opacity);
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            color: #fff;
+            margin: 0 0 0.5rem 0;
+            line-height: 1.4;
+        }
+
+        .report-meta {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 1rem;
+        }
+
+        .match-score {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 0;
+            
+            &.score--high { color: #00ff88; } // Green
+            &.score--mid { color: #ffb800; } // Yellow
+            &.score--low { color: #ff4444; } // Red
+        }
+    }
+}
+
+
+// ── Page Footer ───────────────────────────────────────────────────────────────
+.page-footer {
+    display: flex;
+    gap: 1.5rem;
+
+    a {
+        font-size: 0.8rem;
+        color: $text-muted;
+        text-decoration: none;
+        transition: color 0.2s;
+
+        &:hover {
+            color: $text-primary;
+        }
+    }
+}
+.upload-container {
+    width: 100%;
+
+    // The existing dashed box
+    .upload-dropzone {
+        display: block;
+        width: 100%;
+        padding: 2rem;
+        border: 2px dashed #333;
+        border-radius: 12px;
+        background: #1a1a1a;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .dropzone-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+
+            p {
+                color: #fff;
+                margin: 0;
+                font-weight: 500;
+            }
+            span {
+                color: #666;
+                font-size: 0.85rem;
+            }
+        }
+    }
+
+    // The NEW Success Card
+    .uploaded-file-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.2rem;
+        border: 1px solid rgba(0, 255, 136, 0.3);
+        border-radius: 12px;
+        background: rgba(0, 255, 136, 0.05);
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            .file-name {
+                color: #00ff88;
+                font-weight: 500;
+                font-size: 0.95rem;
+                max-width: 250px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+
+        .remove-file-btn {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 50%;
+            transition: all 0.2s;
+
+            &:hover {
+                color: #ff4444;
+                background: rgba(255, 68, 68, 0.1);
+            }
+        }
+    }
+}
+
+
+
+/* =========================================
+   PREMIUM TOP NAVBAR
+   ========================================= */
+.top-navbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1.2rem 3rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05); /* Very subtle bottom line */
+    display: flex;
+    justify-content: center;
+    z-index: 100;
+    background: rgba(15, 15, 15, 0.6); /* Slight background */
+    backdrop-filter: blur(8px); /* Premium glass effect */
+
+    &__content {
+        width: 100%;
+        max-width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+    }
+
+    .user-menu {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88, #00b35e); /* Matches your brand green */
+            color: #0f0f0f; /* Dark text for contrast */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+        }
+
+        .username {
+            color: #e2e8f0;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+    }
+
+    .history-link-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: transparent;
+        color: #a0aec0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            color: #00ff88;
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.05);
+            transform: translateY(-1px);
+        }
+    }
+
+    .logout-button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: transparent;
+        color: #a0aec0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            color: #fff;
+            border-color: #ff4d4d; /* Soft red border on hover */
+            background: rgba(255, 77, 77, 0.1); /* Soft red glow */
+            transform: translateY(-1px);
+        }
+    }
+}
+
+/* 🟢 IMPORTANT LAYOUT FIX */
+/* Because the navbar is absolute positioned, we need to push your main content down slightly so they don't overlap */
+.home-page {
+    padding-top: 80px; 
+}
+
+// ── Character Counter Warning ─────────────────────────────────────────────────
+.char-counter {
+    transition: color 0.2s;
+
+    &--warn {
+        color: #f59e0b !important; // Amber warning color
+        font-weight: 600;
+    }
+}
+
+// ── Form Validation Error ─────────────────────────────────────────────────────
+.form-error {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #f87171; // Soft red
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+
+    &::before {
+        content: '⚠';
+    }
+}
+
+.footer-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+// ── Generate Button — Loading State ──────────────────────────────────────────
+.generate-btn {
+    &--loading {
+        opacity: 0.75;
+        cursor: not-allowed;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+    }
+}
+
+// ── Button Spinner ─────────────────────────────────────────────────────────────
+.btn-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+// ── Report Card — Top Row with Delete Button ──────────────────────────────────
+.report-item {
+    &__top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+
+        h3 {
+            margin: 0;
+        }
+    }
+}
+
+.report-delete-btn {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: #555;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, background-color 0.2s;
+    opacity: 0; // Hidden by default
+    transition: opacity 0.2s, color 0.2s, background-color 0.2s;
+
+    .report-item:hover & {
+        opacity: 1; // Reveal on card hover
+    }
+
+    &:hover {
+        color: #ff4444;
+        background-color: rgba(255, 68, 68, 0.1);
+    }
+}

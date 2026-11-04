@@ -1,0 +1,350 @@
+import React, { useState, useRef } from 'react'
+import "../style/home.scss"
+import { useInterview } from '../hooks/useInterview.js'
+import { useNavigate } from 'react-router'
+import { useAuth } from '../../auth/hooks/useAuth.js'
+import { deleteInterviewReport } from '../services/interview.api.js'
+
+const ReportCard = ({ report, i, navigate, handleDeleteReport }) => {
+    const [tiltStyle, setTiltStyle] = useState({});
+
+    const handleMouseMove = (e) => {
+        const card = e.currentTarget;
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const rotateX = ((y - centerY) / centerY) * -8;
+        const rotateY = ((x - centerX) / centerX) * 8;
+
+        const glareX = (x / rect.width) * 100;
+        const glareY = (y / rect.height) * 100;
+
+        setTiltStyle({
+            transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`,
+            '--glare-x': `${glareX}%`,
+            '--glare-y': `${glareY}%`,
+            '--glare-opacity': '1'
+        });
+    };
+
+    const handleMouseLeave = () => {
+        setTiltStyle({
+            transform: `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`,
+            '--glare-opacity': '0'
+        });
+    };
+
+    return (
+        <li 
+            className='report-item' 
+            onClick={() => navigate(`/interview/${report._id}`)}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            style={{
+                ...tiltStyle,
+                animation: `fadeInUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`,
+                animationDelay: `${0.2 + i * 0.1}s`,
+                opacity: 0
+            }}
+        >
+            <div className='report-item__top'>
+                <h3>{report.title || 'Untitled Position'}</h3>
+                <button
+                    className='report-delete-btn'
+                    onClick={(e) => handleDeleteReport(e, report._id)}
+                    aria-label="Delete report"
+                    title="Delete this plan"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                </button>
+            </div>
+            <p className='report-meta'>Generated on {new Date(report.createdAt).toLocaleDateString()}</p>
+            <p className={`match-score ${report.matchScore >= 80 ? 'score--high' : report.matchScore >= 60 ? 'score--mid' : 'score--low'}`}>Match Score: {report.matchScore}%</p>
+        </li>
+    );
+};
+
+const Home = () => {
+
+    const { loading, generateReport, reports, setReports } = useInterview()
+    const { user, handleLogout } = useAuth() 
+
+    const [ jobDescription, setJobDescription ] = useState("")
+    const [ selfDescription, setSelfDescription ] = useState("")
+    const [ formError, setFormError ] = useState("")
+    
+    // 1. Add state to track the selected file
+    const [resumeFile, setResumeFile] = useState(null)
+    const resumeInputRef = useRef()
+    
+    const navigate = useNavigate()
+
+    // 2. Add handler functions for file input changes
+    const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setResumeFile(file);
+        }
+    };
+
+    const handleRemoveFile = (e) => {
+        e.preventDefault(); 
+        setResumeFile(null);
+        // Reset the input value so the same file can be selected again if needed
+        if (resumeInputRef.current) {
+            resumeInputRef.current.value = "";
+        }
+    };
+
+    const handleGenerateReport = async () => {
+        // ✅ Input validation before hitting the API
+        setFormError("")
+        if (!jobDescription.trim()) {
+            setFormError("Please paste a job description before generating your plan.")
+            return
+        }
+        if (!resumeFile && !selfDescription.trim()) {
+            setFormError("Please upload your resume or write a quick self-description.")
+            return
+        }
+
+        const data = await generateReport({ jobDescription, selfDescription, resumeFile })
+        
+        if (data && data._id) {
+            navigate(`/interview/${data._id}`)
+        }
+    }
+
+    const handleDeleteReport = async (e, reportId) => {
+        // Stop the click from bubbling up to the card's navigate handler
+        e.stopPropagation()
+        if (!window.confirm("Delete this interview plan? This cannot be undone.")) return
+        try {
+            await deleteInterviewReport(reportId)
+            setReports(prev => prev.filter(r => r._id !== reportId))
+        } catch (err) {
+            console.error("Delete failed:", err)
+            alert("Failed to delete report. Please try again.")
+        }
+    }
+
+    if (loading) {
+        return (
+            <main className='loading-screen'>
+                <h1>Loading your interview plan...</h1>
+            </main>
+        )
+    }
+
+    return (
+        <div className='home-page'>
+
+            {/* 🟢 NEW: Top Bar with User Info and Logout */}
+            <nav className='top-navbar'>
+                <div className='top-navbar__content'>
+                    {/* Empty left side to push everything right, or you can add a Logo here later! */}
+                    <div className='brand'></div>
+
+                    <div className='user-menu'>
+                        {user && (
+                            <div className='user-profile'>
+                                <div className='avatar'>
+                                    {/* Grabs the first letter of their username for a cool profile icon */}
+                                    {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
+                                </div>
+                                <span className='username'>Hello, {user.username || 'User'}</span>
+                            </div>
+                        )}
+                        <button onClick={() => navigate("/history")} className="history-link-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            Mock History
+                        </button>
+
+                        <button onClick={handleLogout} className='logout-button'>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            {/* Page Header */}
+            <header className='page-header'>
+                <h1>Create Your Custom <span className='highlight'>Interview Plan</span></h1>
+                <p>Let our AI analyze the job requirements and your unique profile to build a winning strategy.</p>
+            </header>
+
+            {/* Main Card */}
+            <div className='interview-card'>
+                <div className='interview-card__body'>
+
+                    {/* Left Panel - Job Description */}
+                    <div className='panel panel--left'>
+                        <div className='panel__header'>
+                            <span className='panel__icon'>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
+                            </span>
+                            <h2>Target Job Description</h2>
+                            <span className='badge badge--required'>Required</span>
+                        </div>
+                        <textarea
+                            onChange={(e) => { setJobDescription(e.target.value) }}
+                            className='panel__textarea'
+                            placeholder={`Paste the full job description here...\ne.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'`}
+                            maxLength={5000}
+                        />
+                        <div className={`char-counter ${jobDescription.length > 4500 ? 'char-counter--warn' : ''}`}>
+                            {jobDescription.length} / 5000 chars
+                        </div>
+                    </div>
+
+                    {/* Vertical Divider */}
+                    <div className='panel-divider' />
+
+                    {/* Right Panel - Profile */}
+                    <div className='panel panel--right'>
+                        <div className='panel__header'>
+                            <span className='panel__icon'>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                            </span>
+                            <h2>Your Profile</h2>
+                        </div>
+
+                        {/* Upload Resume Section */}
+                        <div className='upload-section'>
+                            <label className='section-label'>
+                                Upload Resume
+                                <span className='badge badge--best'>Best Results</span>
+                            </label>
+                            
+                            {/* 3. Conditional Rendering for the Dropzone */}
+                            <div className="upload-container">
+                                {!resumeFile ? (
+                                    <label className='dropzone upload-dropzone' htmlFor='resume'>
+                                        <span className='dropzone__icon'>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" /></svg>
+                                        </span>
+                                        <div className="dropzone-content">
+                                            <p className='dropzone__title'>Click to upload or drag &amp; drop</p>
+                                            <span className='dropzone__subtitle'>PDF or DOCX (Max 5MB)</span>
+                                        </div>
+                                        <input 
+                                            ref={resumeInputRef} 
+                                            hidden 
+                                            type='file' 
+                                            id='resume' 
+                                            name='resume' 
+                                            accept='.pdf,.docx' 
+                                            onChange={handleFileUpload} 
+                                        />
+                                    </label>
+                                ) : (
+                                    <div className="uploaded-file-card">
+                                        <div className="file-info">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ff88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                <polyline points="14 2 14 8 20 8"></polyline>
+                                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                                <polyline points="10 9 9 9 8 9"></polyline>
+                                            </svg>
+                                            <span className="file-name">{resumeFile.name}</span>
+                                        </div>
+                                        <button className="remove-file-btn" onClick={handleRemoveFile} aria-label="Remove file">
+                                            ✕
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* OR Divider */}
+                        <div className='or-divider'><span>OR</span></div>
+
+                        {/* Quick Self-Description */}
+                        <div className='self-description'>
+                            <label className='section-label' htmlFor='selfDescription'>Quick Self-Description</label>
+                            <textarea
+                                onChange={(e) => { setSelfDescription(e.target.value) }}
+                                id='selfDescription'
+                                name='selfDescription'
+                                className='panel__textarea panel__textarea--short'
+                                placeholder="Briefly describe your experience, key skills, and years of experience if you don't have a resume handy..."
+                            />
+                        </div>
+
+                        {/* Info Box */}
+                        <div className='info-box'>
+                            <span className='info-box__icon'>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" stroke="#1a1f27" strokeWidth="2" /><line x1="12" y1="16" x2="12.01" y2="16" stroke="#1a1f27" strokeWidth="2" /></svg>
+                            </span>
+                            <p>Either a <strong>Resume</strong> or a <strong>Self Description</strong> is required to generate a personalized plan.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Card Footer */}
+                <div className='interview-card__footer'>
+                    <div className='footer-left'>
+                        <span className='footer-info'>AI-Powered Strategy Generation &bull; Approx 30s</span>
+                        {formError && <p className='form-error'>{formError}</p>}
+                    </div>
+                    <button
+                        onClick={handleGenerateReport}
+                        disabled={loading}
+                        className={`generate-btn ${loading ? 'generate-btn--loading' : ''}`}>
+                        {loading ? (
+                            <>
+                                <span className='btn-spinner' />
+                                Generating...
+                            </>
+                        ) : (
+                            <>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" /></svg>
+                                Generate My Interview Strategy
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
+
+            {/* Recent Reports List */}
+            {reports.length > 0 && (
+                <section className='recent-reports'>
+                    <h2>My Recent Interview Plans</h2>
+                    <ul className='reports-list'>
+                        {reports.map((report, i) => (
+                            <ReportCard 
+                                key={report._id} 
+                                report={report} 
+                                i={i} 
+                                navigate={navigate} 
+                                handleDeleteReport={handleDeleteReport} 
+                            />
+                        ))}
+                    </ul>
+                </section>
+            )}
+
+            {/* Page Footer */}
+            <footer className='page-footer'>
+                <a href='#'>Privacy Policy</a>
+                <a href='#'>Terms of Service</a>
+                <a href='#'>Help Center</a>
+            </footer>
+        </div>
+    )
+}
+
+export default Home
