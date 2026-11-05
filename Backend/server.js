@@ -1,3 +1,10 @@
+process.on('uncaughtException', (err) => {
+    console.error('⚠️ Intercepted Uncaught Exception:', err.message || err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('⚠️ Intercepted Unhandled Rejection:', reason);
+});
+
 require("dotenv").config();
 const connectToDB = require("./src/config/database");
 

@@ -2,25 +2,18 @@ const { Router } = require('express');
 const authController = require("../controllers/auth.controller");
 const authMiddleware = require("../middlewares/auth.middleware");
 
-const rateLimit = require("express-rate-limit");
-const { RedisStore } = require("rate-limit-redis");
-const redisClient = require("../config/redis");
+const createAdaptiveRateLimiter = require("../config/adaptiveRateLimiter");
 
 const authRouter = Router();
 
 // --- Define the Strict Auth Rate Limiter ---
 // Blocks bots from brute-forcing passwords or spamming fake accounts
-const authRateLimiter = rateLimit({
+const authRateLimiter = createAdaptiveRateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 20, // Limit to 20 attempts per IP
     standardHeaders: true,
     legacyHeaders: false,
     validate: { trustProxy: false, xForwardedForHeader: false, default: false },
-    store: redisClient?.isOpen
-        ? new RedisStore({
-            sendCommand: (...args) => redisClient.sendCommand(args),
-        })
-        : undefined,
     message: { 
         message: "Too many authentication attempts. Please try again in 15 minutes." 
     }

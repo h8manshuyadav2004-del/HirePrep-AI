@@ -5,29 +5,33 @@ const isTls = redisUrl.startsWith('rediss://');
 
 const redisClient = createClient({
     url: redisUrl,
-    pingInterval: 300000,
+    pingInterval: 30000,
     socket: {
         tls: isTls ? true : undefined,
         rejectUnauthorized: false,
         reconnectStrategy: (retries) => {
-            if (retries > 10) return false;
+            if (retries > 5) return false;
             return Math.min(retries * 200, 3000);
         }
     }
 });
 
 redisClient.on('error', (err) => {
-    if (err.message !== 'Socket closed unexpectedly') {
-        console.error('Redis Client Error:', err.message);
-    }
+    console.warn('⚠️ Redis Notice (Handled):', err.message || err.code);
 });
 
 redisClient.on('reconnecting', () => console.log('Redis client is reconnecting...'));
 redisClient.on('ready', () => console.log('Connected to Redis successfully!'));
 
 // Start connecting without making Redis availability a prerequisite for server startup.
-redisClient.connect().catch((err) => {
-    console.warn('Redis could not connect. Continuing without Redis:', err.message);
+(async () => {
+    try {
+        await redisClient.connect();
+    } catch (err) {
+        console.warn('Redis connection failed; continuing without Redis:', err.message || err.code);
+    }
+})().catch((err) => {
+    console.warn('Redis connection setup failed; continuing without Redis:', err.message || err.code);
 });
 
 module.exports = redisClient;

@@ -5,22 +5,17 @@ const upload = require("../middlewares/file.middleware")
 const multer = require("multer")
 
 // --- RATE LIMITING IMPORTS ---
-const rateLimit = require("express-rate-limit");
-const { RedisStore } = require("rate-limit-redis");
-const redisClient = require("../config/redis");
+const createAdaptiveRateLimiter = require("../config/adaptiveRateLimiter");
 
 const interviewRouter = express.Router()
 
 // --- Define the AI Rate Limiter ---
-const aiRateLimiter = rateLimit({
+const aiRateLimiter = createAdaptiveRateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 10, // Limit each IP to 10 requests per 15 minutes
     standardHeaders: true,
     legacyHeaders: false,
     validate: { trustProxy: false, xForwardedForHeader: false, default: false },
-    store: redisClient?.isOpen ? new RedisStore({
-        sendCommand: (...args) => redisClient.sendCommand(args),
-    }) : undefined,
     message: {
         message: "You have reached your AI generation limit. Please try again in 15 minutes."
     }
