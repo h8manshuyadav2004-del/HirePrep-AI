@@ -37,6 +37,10 @@ app.use("/api/auth", authRouter);
 app.use("/api/interview", interviewRouter);
 app.use("/api/jobs", jobRouter);
 
+//health check endpoint for Render and other platforms
+app.get("/", (req, res) => {
+  res.status(200).json({ status: "ok", message: "HirePrep API is running" });
+});
 // CORS middleware runs before this JSON fallback for unknown paths.
 app.use((req, res) => {
     res.status(404).json({ message: "Endpoint not found." });
