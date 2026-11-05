@@ -48,8 +48,8 @@ async function registerUserController(req, res) {
 
         res.cookie("token", token, {
             httpOnly: true,
-            secure: true, // Required for SameSite=None
-            sameSite: "None", // Required for cross-domain cookies (Vercel -> Render)
+            secure: true, // Cross-origin production cookies must be sent over HTTPS.
+            sameSite: "none", // Lowercase SameSite=None enables cross-origin cookies.
             maxAge: 24 * 60 * 60 * 1000 // 1 day
         });
             
@@ -99,7 +99,7 @@ async function loginUserController(req, res) {
         res.cookie("token", token, {
             httpOnly: true,
             secure: true,
-            sameSite: "None",
+            sameSite: "none",
             maxAge: 24 * 60 * 60 * 1000
         });
         res.status(200).json({
@@ -169,7 +169,12 @@ async function logoutUserController(req, res) {
  * @access private
  */
 async function getMeController(req, res) {
-    try{
+    try {
+        // Middleware normally supplies req.user; guard it before using its id in MongoDB.
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: "Authentication required." });
+        }
+
         const user = await userModel.findById(req.user.id);
 
         // Fix #1: user could be null if the account was deleted after the JWT was issued
@@ -185,8 +190,8 @@ async function getMeController(req, res) {
                 email: user.email
             }
         });
-   }
-   catch (error) {
+    } catch (error) {
+        console.error("Get Me Error:", error);
         res.status(500).json({ message: "Server Error" });
     }
 }
