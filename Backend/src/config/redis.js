@@ -1,31 +1,33 @@
 const { createClient } = require('redis');
 
-// In Docker, the host will simply be 'redis'. Locally, it's localhost.
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+const isTls = redisUrl.startsWith('rediss://');
 
-const redisClient = createClient({ 
+const redisClient = createClient({
     url: redisUrl,
-    pingInterval: 300000, // Send a PING every 5 minutes to keep the connection alive
+    pingInterval: 300000,
     socket: {
+        tls: isTls ? true : undefined,
+        rejectUnauthorized: false,
         reconnectStrategy: (retries) => {
-            if (retries > 5) {
-                // Return null to stop reconnecting after 5 attempts
-                // This allows the app to proceed without Redis in local development
-                return false;
-            }
-            return Math.min(retries * 500, 2000); // Gradual increase in wait time
+            if (retries > 10) return false;
+            return Math.min(retries * 200, 3000);
         }
     }
 });
 
 redisClient.on('error', (err) => {
-    // Only log critical errors to avoid spamming the logs during expected socket closures
     if (err.message !== 'Socket closed unexpectedly') {
-        console.error('❌ Redis Client Error:', err.message);
+        console.error('Redis Client Error:', err.message);
     }
 });
 
-redisClient.on('reconnecting', () => console.log('🔄 Redis client is reconnecting...'));
-redisClient.on('connect', () => console.log('📦 Connected to Redis successfully!'));
+redisClient.on('reconnecting', () => console.log('Redis client is reconnecting...'));
+redisClient.on('ready', () => console.log('Connected to Redis successfully!'));
+
+// Start connecting without making Redis availability a prerequisite for server startup.
+redisClient.connect().catch((err) => {
+    console.warn('Redis could not connect. Continuing without Redis:', err.message);
+});
 
 module.exports = redisClient;

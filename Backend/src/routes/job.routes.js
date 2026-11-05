@@ -16,9 +16,9 @@ const jobRateLimiter = rateLimit({
     legacyHeaders: false,
     validate: { trustProxy: false, xForwardedForHeader: false, default: false },
 
-    store: new RedisStore({
+    store: redisClient?.isOpen ? new RedisStore({
         sendCommand: (...args) => redisClient.sendCommand(args),
-    }),
+    }) : undefined,
     message: { 
         message: "You are searching too fast! Please wait a few minutes before trying again." 
     }

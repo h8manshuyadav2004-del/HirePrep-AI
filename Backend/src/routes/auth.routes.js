@@ -16,11 +16,11 @@ const authRateLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     validate: { trustProxy: false, xForwardedForHeader: false, default: false },
-    store: redisClient.isOpen 
+    store: redisClient?.isOpen
         ? new RedisStore({
             sendCommand: (...args) => redisClient.sendCommand(args),
         })
-        : new rateLimit.MemoryStore(), // Fallback to memory store if Redis is down
+        : undefined,
     message: { 
         message: "Too many authentication attempts. Please try again in 15 minutes." 
     }

@@ -18,9 +18,9 @@ const aiRateLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     validate: { trustProxy: false, xForwardedForHeader: false, default: false },
-    store: new RedisStore({
+    store: redisClient?.isOpen ? new RedisStore({
         sendCommand: (...args) => redisClient.sendCommand(args),
-    }),
+    }) : undefined,
     message: {
         message: "You have reached your AI generation limit. Please try again in 15 minutes."
     }

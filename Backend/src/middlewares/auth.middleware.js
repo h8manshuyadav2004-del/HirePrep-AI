@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 // REDIS CLIENT FOR BLACKLISTING TOKENS -----BOOM-----
 const redisClient = require("../config/redis"); 
+const tokenBlacklist = require("../config/tokenBlacklist");
 
 async function authUser(req, res, next) {
     // 1. Intelligently check both Cookies and Bearer Headers
@@ -15,7 +16,15 @@ async function authUser(req, res, next) {
     try {
         // 2. CHECK REDIS BLACKLIST
         // Note: The key format must match EXACTLY what you used in logoutUserController
-        const isBlacklisted = await redisClient.get(`blacklist:${token}`);
+        let isBlacklisted = tokenBlacklist.has(token);
+        if (redisClient?.isOpen) {
+            try {
+                isBlacklisted = isBlacklisted || await redisClient.get(`blacklist:${token}`);
+            } catch (redisError) {
+                // Redis can close between checking isOpen and issuing the command.
+                isBlacklisted = tokenBlacklist.has(token);
+            }
+        }
 
         if (isBlacklisted) {
             return res.status(401).json({

@@ -1,57 +1,45 @@
-// server ko create karna
 const express = require("express");
 const cookieParser = require("cookie-parser");
-const cors = require("cors"); 
+const cors = require("cors");
 
-// --- RATE LIMITING IMPORTS ---
-const rateLimit = require("express-rate-limit");
-const { RedisStore } = require("rate-limit-redis");
-const redisClient = require("./config/redis"); 
-
-// --- Import ALL Routes ---
 const authRouter = require("./routes/auth.routes");
 const interviewRouter = require("./routes/interview.routes");
 const jobRouter = require("./routes/job.routes");
 
 const app = express();
 
-// 🚀 FIXED: Prevent CORS mismatch by trimming trailing slashes from the origin URL
-const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+const allowedOrigins = new Set([
+    process.env.FRONTEND_URL,
+    "https://hire-prepr-ai.vercel.app",
+    "http://localhost:5173"
+].filter(Boolean).map((origin) => origin.replace(/\/$/, "")));
 
-// --- Middleware --- (Security Guards and Traffic Directors)
+app.use(cors({
+    origin(origin, callback) {
+        if (!origin || allowedOrigins.has(origin.replace(/\/$/, ""))) {
+            return callback(null, true);
+        }
+        return callback(new Error("Origin not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Cookie"],
+    exposedHeaders: ["Set-Cookie"]
+}));
 
-// 1. Manual CORS handling to ensure credentials and preflight are perfect
-app.use((req, res, next) => {
-    // Determine if the origin is allowed (localhost:5173 or the env variable)
-    const origin = req.headers.origin;
-    if (origin === frontendUrl || !origin) {
-        res.setHeader("Access-Control-Allow-Origin", origin || frontendUrl);
-    }
-    
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Cookie");
-    res.setHeader("Access-Control-Expose-Headers", "Set-Cookie");
-
-    // Handle Preflight (OPTIONS) requests
-    if (req.method === "OPTIONS") {
-        return res.status(200).end();
-    }
-    
-    next();
-});
-
-// 🚀 CRITICAL FOR PRODUCTION RATE LIMITING
-// Tells Express to use the real user's IP, not the hosting provider's Load Balancer IP
+// Use the real client IP behind Render's load balancer.
 app.set("trust proxy", 1);
 
-app.use(express.json());  
-app.use(cookieParser()); 
+app.use(express.json());
+app.use(cookieParser());
 
-// --- Mount ALL Routes ---
 app.use("/api/auth", authRouter);
-app.use("/api/interview", interviewRouter); // AI strictly protected
-app.use("/api/jobs", jobRouter); 
+app.use("/api/interview", interviewRouter);
+app.use("/api/jobs", jobRouter);
+
+// CORS middleware runs before this JSON fallback for unknown paths.
+app.use((req, res) => {
+    res.status(404).json({ message: "Endpoint not found." });
+});
 
 module.exports = app;
-

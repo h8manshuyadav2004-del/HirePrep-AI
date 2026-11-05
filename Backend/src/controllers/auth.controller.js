@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 
 // REDIS CLIENT FOR BLACKLISTING TOKENS -----BOOM-----
 const redisClient = require("../config/redis");
+const tokenBlacklist = require("../config/tokenBlacklist");
 
 /**
  * @name registerUserController
@@ -138,7 +139,10 @@ async function logoutUserController(req, res) {
 
                 // 4. Save to Redis with a self-destruct timer (TTL)
                 if (timeLeft > 0) {
-                    await redisClient.setEx(`blacklist:${token}`, timeLeft, "true");
+                    tokenBlacklist.add(token, decoded.exp);
+                    if (redisClient?.isOpen) {
+                        await redisClient.setEx(`blacklist:${token}`, timeLeft, "true");
+                    }
                 }
             }
         } catch (error) {
